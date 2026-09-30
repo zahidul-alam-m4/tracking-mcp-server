@@ -1,0 +1,11 @@
+{$MCP_DOMAIN} {
+    encode gzip
+
+    # Streamable HTTP can hold responses open: don't buffer, allow long reads
+    reverse_proxy mcp:8080 {
+        flush_interval -1
+        transport http {
+            read_timeout 5m
+        }
+    }
+}

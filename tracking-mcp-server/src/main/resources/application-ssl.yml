@@ -1,0 +1,9 @@
+# Use only if you are NOT terminating TLS in a reverse proxy.
+server:
+  port: 8443
+  ssl:
+    enabled: true
+    key-store: ${SSL_KEYSTORE:file:/certs/keystore.p12}
+    key-store-type: PKCS12
+    key-store-password: ${SSL_KEYSTORE_PASSWORD}
+    key-alias: tracking

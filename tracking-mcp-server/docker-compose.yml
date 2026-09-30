@@ -1,0 +1,52 @@
+services:
+  mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tracking-mcp-server:1.0.0
+    container_name: tracking-mcp-server
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    environment:
+      # ---- spring.ai.mcp.server.* -------------------------------------
+      MCP_SERVER_NAME: "tracking-mcp-server"
+      MCP_SERVER_VERSION: "1.0.0"
+      MCP_ENDPOINT_PATH: "/mcp"
+
+      # ---- server.* ------------------------------------------------------
+      SERVER_PORT: "8080"
+
+      # ---- management.* (actuator health, used by HEALTHCHECK) -----------
+      ACTUATOR_HEALTH_DETAILS: "never"
+
+      # ---- tracking.* (application-specific properties) -------------------
+      TRACKING_BASE_URL_PATTERN: "https://{system}.netcourier.net"
+      TRACKING_SYSTEMS_SPARKLE: "https://sparkle.netcourier.net"
+      # Add more systems the same way, one env var per system:
+      # TRACKING_SYSTEMS_ACME: "https://track.acme-courier.com"
+      TRACKING_TIMEOUT: "15s"
+      TRACKING_MAX_CHARS: "8000"
+      TRACKING_CONTENT_SELECTOR: ""
+      # Set a value here to require Authorization: Bearer <key> / X-API-Key on /mcp.
+      # Prefer passing this via an env file or docker secret rather than committing it.
+      TRACKING_SECURITY_API_KEY: ""
+
+      # ---- logging.* -------------------------------------------------------
+      LOG_LEVEL_ROOT: "INFO"
+      LOG_LEVEL_APP: "INFO"
+
+      # ---- JVM ---------------------------------------------------------
+      JAVA_OPTS: "-Xmx256m -XX:+UseContainerSupport"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    networks:
+      - mcp-net
+
+networks:
+  mcp-net:
+    driver: bridge
